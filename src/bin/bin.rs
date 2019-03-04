@@ -3,8 +3,13 @@ use boa::exec::{Executor, Interpreter};
 use boa::syntax::lexer::Lexer;
 use boa::syntax::parser::Parser;
 use std::fs::read_to_string;
+use boa::repl::REPL;
 
 pub fn main() {
+
+    let mut rep: REPL = REPL::new();
+    rep.run();
+
     let buffer = read_to_string("tests/js/test.js").unwrap();
     let mut lexer = Lexer::new(&buffer);
     lexer.lex().unwrap();

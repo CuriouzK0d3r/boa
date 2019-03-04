@@ -1,0 +1,19 @@
+name: boa
+version: "0.1"
+author: Alex K <kornilak@ics.forth.gr>
+about: A toy JS VM written in Rust
+args:
+    - config:
+        short: c
+        long: config
+        value_name: OPTION
+        help: Sets a custom config file
+        takes_value: true
+    - INPUT:
+        help: Sets the input file to use
+        required: true
+        index: 1
+    - verbose:
+        short: v
+        multiple: true
+        help: Sets the level of verbosity

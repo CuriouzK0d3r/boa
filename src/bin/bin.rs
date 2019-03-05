@@ -9,38 +9,45 @@ use std::env;
 extern crate clap;
 use clap::App;
 
+fn printHelp() {
+    println!("USAGE:");
+    println!("\t ./bin <mode> [INPUT]");
+}
+
 pub fn main() {
-    let yaml = load_yaml!("../../cli.yml");
-    let matches = App::from_yaml(yaml).get_matches();
-    let option = matches.value_of("option").unwrap();
-    println!("{}", option);
+
     let args: Vec<_> = env::args().collect();
-    // if args.len() == 2 {
-    //     match args[1].to_owned() {
-    //         "repl" => {
-    //             let mut repl: REPL = REPL::new();
-    //             repl.run();
-    //         },
-    //         "file" => {
-    //             let buffer = read_to_string(args[2]).unwrap();
-    //             let mut lexer = Lexer::new(&buffer);
-    //             lexer.lex().unwrap();
-    //             let tokens = lexer.tokens;
 
-    //             // Setup executor
-    //             let expr = Parser::new(tokens).parse_all().unwrap();
+    match args.len() {
+        1 => printHelp(),
+        2 => match args[1].as_ref() {
+            "repl" => {
+                let mut repl: REPL = REPL::new();
+                repl.run();
+            },
+            "help" => {
+                printHelp();
+            },
+            _ => printHelp(),
+        },
+        3 => match args[1].as_ref() {
+            "run" => {
+                let buffer = read_to_string(args[2]).unwrap();
+                let mut lexer = Lexer::new(&buffer);
+                lexer.lex().unwrap();
+                let tokens = lexer.tokens;
 
-    //             let mut engine: Interpreter = Executor::new();
-    //             let result = engine.run(&expr);
-    //             match result {
-    //                 Ok(v) => print!("{}", v),
-    //                 Err(v) => print!("Error: {}", v),
-    //             }
-    //         },
+                // Setup executor
+                let expr = Parser::new(tokens).parse_all().unwrap();
 
-    //     }
-    // }
-    // else {
-
-    // }
+                let mut engine: Interpreter = Executor::new();
+                let result = engine.run(&expr);
+                match result {
+                    Ok(v) => print!("{}", v),
+                    Err(v) => print!("Error: {}", v),
+                }
+            },
+            _ => printHelp(),
+        },
+    }
 }

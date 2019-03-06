@@ -5,11 +5,8 @@ use boa::syntax::parser::Parser;
 use std::fs::read_to_string;
 use boa::repl::REPL;
 use std::env;
-#[macro_use]
-extern crate clap;
-use clap::App;
 
-fn printHelp() {
+fn print_help() {
     println!("USAGE:");
     println!("\t ./bin <mode> [INPUT]");
 }
@@ -19,20 +16,20 @@ pub fn main() {
     let args: Vec<_> = env::args().collect();
 
     match args.len() {
-        1 => printHelp(),
+        1 => print_help(),
         2 => match args[1].as_ref() {
             "repl" => {
                 let mut repl: REPL = REPL::new();
                 repl.run();
             },
             "help" => {
-                printHelp();
+                print_help();
             },
-            _ => printHelp(),
+            _ => print_help(),
         },
         3 => match args[1].as_ref() {
             "run" => {
-                let buffer = read_to_string(args[2]).unwrap();
+                let buffer = read_to_string(&args[2]).unwrap();
                 let mut lexer = Lexer::new(&buffer);
                 lexer.lex().unwrap();
                 let tokens = lexer.tokens;
@@ -47,7 +44,8 @@ pub fn main() {
                     Err(v) => print!("Error: {}", v),
                 }
             },
-            _ => printHelp(),
+            _ => print_help(),
         },
+        _ => print_help(),
     }
 }

@@ -1,0 +1,13 @@
+[workspace]
+members = [
+    "ratel",
+    "ratel-codegen",
+    "ratel-visitor",
+    "ratel-transformer",
+    "ratel-wasm",
+]
+exclude = [ "ffi" ]
+
+[profile]
+release = { lto = true }
+bench = { lto = true }

@@ -1,4 +1,4 @@
-use crate::exec::{Interpreter, Executor};
+use crate::exec_new::{Interpreter, Executor};
 use crate::syntax::lexer::Lexer;
 use crate::syntax::parser::Parser;
 extern crate ratel;
@@ -6,10 +6,13 @@ extern crate rustyline;
 use std::panic;
 extern crate esprit;
 extern crate toolshed;
+use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
+
 // use toolshed::list::List;
 // use ratel::ast;
 use ratel::parse;
-use ratel::ast::expression::Expression;
+use ratel::ast::expression::*;
+pub use ratel::ast::literal::Literal;
 use ratel::ast::Statement;
 
 // fn tokenize(b: &mut Bencher) {
@@ -27,7 +30,7 @@ use ratel::ast::Statement;
 // }
 
 /// Starting prompt
-const DEFAULT_PROMPT: &'static str = "js_i => ";
+const DEFAULT_PROMPT: &'static str = "js => ";
 /// Prompt when further input is being read
 const MORE_PROMPT: &'static str = "js_i .> ";
 /// Prompt when a `.block` command is in effect
@@ -67,15 +70,13 @@ impl REPL {
                                 let vec = module.body();
                                 
                                 for i in &vec {
-                                    // println!("A reference to {:#?}", i);
-                                    // let x: () = i.item;
+                                    // println!("A reference to {:#?}", i.item);
+                                    
+                                    let x = i.item;
                                     // println!("{}", unsafe { std::intrinsics::type_name::<i>() });
-
-                                    match i.item {
-                                        
-                                        Statement::If(e) => {let x: () = e.test.item; println!("A reference to {:#?}", e.test.item);},
-                                        _ => println!("fd"),
-                                    }
+                                    let mut engine: Interpreter = Executor::new();
+                                    engine.run(&x);
+                                    
                                 }
                                 // print!("{:#?}", module.body)
                             },
@@ -93,18 +94,18 @@ impl REPL {
                         // let _module = ratel::parser::parse(copy);//.expect("Must parse");
                         // println!("{}", _module);
                         
-                        let mut lexer = Lexer::new(&line);
-                        lexer.lex().expect("no lex");
+                        // let mut lexer = Lexer::new(&line);
+                        // lexer.lex().expect("no lex");
                         
-                        let tokens = lexer.tokens;
+                        // let tokens = lexer.tokens;
 
-                        let expr = Parser::new(tokens).parse_all().expect("no parse");
-                        let mut engine: Interpreter = Executor::new();
-                        let result = engine.run(&expr);
-                        match result {
-                            Ok(v) => print!("{}", v),
-                            Err(v) => print!("Error: {}", v),
-                        }
+                        // let expr = Parser::new(tokens).parse_all().expect("no parse");
+                        // let mut engine: Interpreter = Executor::new();
+                        // let result = engine.run(&expr);
+                        // match result {
+                        //     Ok(v) => print!("{}", v),
+                        //     Err(v) => print!("Error: {}", v),
+                        // }
                     // });
                     // if result.is_err() {
                     //     last_command.push_str(&line);

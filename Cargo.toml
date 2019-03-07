@@ -19,7 +19,7 @@ time = "0.1"
 rustyline = "3.0.0"
 esprit = "0.0.5"
 toolshed = "0.8.0"
-"ratel" = {git = "https://github.com/ratel-rust/ratel-core"}
+ratel = { path = "ratel-core/ratel" }
 
 [lib]
 name = "boa"

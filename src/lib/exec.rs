@@ -16,7 +16,6 @@ pub struct Scope {
     /// The variables declared in the scope
     pub vars: Value,
 }
-
 /// An execution engine
 pub trait Executor {
     /// Make a new execution engine

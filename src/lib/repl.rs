@@ -4,7 +4,6 @@ use crate::syntax::parser::Parser;
 extern crate ratel;
 extern crate rustyline;
 use std::panic;
-extern crate esprit;
 extern crate toolshed;
 use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
 

@@ -3,7 +3,7 @@ extern crate rand;
 extern crate serde_json;
 extern crate time;
 extern crate ratel;
-extern crate esprit;
+// extern crate esprit;
 extern crate toolshed;
 
 #[macro_use]

@@ -1,4 +1,4 @@
-use crate::exec_new::{Interpreter, Executor};
+use crate::exec_new::{Executor, Interpreter};
 use crate::syntax::lexer::Lexer;
 use crate::syntax::parser::Parser;
 extern crate ratel;
@@ -6,13 +6,20 @@ extern crate rustyline;
 use std::panic;
 extern crate toolshed;
 use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
-
+extern crate termion;
+use std::io::{stdin, stdout, Write};
+use termion::cursor::{self, DetectCursorPos};
+use termion::event::Key;
+use termion::input::MouseTerminal;
+use termion::input::TermRead;
+use termion::raw::IntoRawMode;
+use termion::{color, style};
 // use toolshed::list::List;
 // use ratel::ast;
-use ratel::parse;
 use ratel::ast::expression::*;
 pub use ratel::ast::literal::Literal;
 use ratel::ast::Statement;
+use ratel::parse;
 
 // fn tokenize(b: &mut Bencher) {
 //     let arena = toolshed::Arena::new();
@@ -37,7 +44,7 @@ const BLOCK_PROMPT: &'static str = "js_i +> ";
 
 pub struct REPL {
     pub intr: Interpreter,
-    pub editor: rustyline::Editor::<()>,
+    pub editor: rustyline::Editor<()>,
 }
 
 impl REPL {
@@ -45,72 +52,150 @@ impl REPL {
         let rl = rustyline::Editor::<()>::new();
         let engine: Interpreter = Executor::new();
         REPL {
-            intr : engine,
-            editor : rl,
+            intr: engine,
+            editor: rl,
         }
     }
 
-    pub fn run(&mut self) -> (){
+    pub fn run(&mut self) -> () {
+        let stdin = stdin();
+        let mut stdout = stdout().into_raw_mode().unwrap();
+
+        write!(
+            stdout,
+            "{}{}{}{}{}",
+            color::Fg(color::Green),
+            termion::clear::All,
+            termion::cursor::Goto(1, 1),
+            DEFAULT_PROMPT,
+            termion::cursor::Show
+        )
+        .unwrap();
+        stdout.flush().unwrap();
+        write!(
+            stdout,
+            "{}{}{}",
+            color::Bg(color::Black),
+            color::Fg(color::White),
+            termion::cursor::Goto(7, 1)
+        )
+        .unwrap();
+        let mut buffer: Vec<char> = Vec::new();
+        for c in stdin.keys() {
+            match c.unwrap() {
+                Key::Char('q') => break,
+                Key::Char(ch) => {
+                    buffer.push(ch);
+                    print!("{}", ch)
+                }
+                Key::Backspace => {
+                    let (x, y) = stdout.cursor_pos().unwrap();
+                    if x - 6 > 1 {
+                        let i = x - 8;
+                        buffer.remove(i as usize);
+                        let s: String = buffer.iter().collect();
+                        print!(
+                            "{}{}{}{}{}{}{}",
+                            color::Fg(color::Green),
+                            termion::clear::CurrentLine,
+                            termion::cursor::Goto(1, 1),
+                            DEFAULT_PROMPT,
+                            color::Fg(color::White),
+                            s,
+                            termion::cursor::Show
+                        );
+                    }
+
+                    // write!(stdout, "{}", termion::cursor::Goto(x - 1, y)).unwrap();
+                },
+                Key::Left => {
+                    let (x, y) = stdout.cursor_pos().unwrap();
+                    write!(
+                        stdout,
+                        "{}",
+                        termion::cursor::Goto(x-1, y)
+                    )
+                    .unwrap();
+                },
+                Key::Right => {
+                    let (x, y) = stdout.cursor_pos().unwrap();
+                    write!(
+                        stdout,
+                        "{}",
+                        termion::cursor::Goto(x+1, y)
+                    )
+                    .unwrap();
+                },
+                Key::Up => {
+
+                },
+                Key::Down => {
+
+                },
+                _ => {}
+            }
+            stdout.flush().unwrap();
+        }
+
+        // write!(stdout, "{}", termion::cursor::Show).unwrap();
         loop {
             let mut last_command: String = "".to_owned();
             // let mut history = [];
 
             match self.editor.readline(DEFAULT_PROMPT) {
                 Ok(line) => {
-
                     // let result = panic::catch_unwind(|| {
-                        let s = String::new(); // String type implements Clone
-                        let copy = line.clone();
-                        let r = parse(&copy);
-                        // // let m = r[0].statements();
-                        // // ratel::grammar::Statement::Empty
-                        match r {
-                            Ok(module) => {
-                                let vec = module.body();
-                                
-                                for i in &vec {
-                                    // println!("A reference to {:#?}", i.item);
-                                    
-                                    let x = i.item;
-                                    // println!("{}", unsafe { std::intrinsics::type_name::<i>() });
-                                    let mut engine: Interpreter = Executor::new();
-                                    engine.run(&x);
-                                    
-                                }
-                                // print!("{:#?}", module.body)
-                            },
-                            Err(v) => print!("Error: "),
+                    let s = String::new(); // String type implements Clone
+                    let copy = line.clone();
+                    let r = parse(&copy);
+                    // // let m = r[0].statements();
+                    // // ratel::grammar::Statement::Empty
+                    match r {
+                        Ok(module) => {
+                            let vec = module.body();
+
+                            for i in &vec {
+                                // println!("A reference to {:#?}", i.item);
+
+                                let x = i.item;
+                                // println!("{}", unsafe { std::intrinsics::type_name::<i>() });
+                                let mut engine: Interpreter = Executor::new();
+                                engine.run(&x);
+                            }
+                            // print!("{:#?}", module.body)
                         }
+                        Err(v) => print!("Error: "),
+                    }
 
-                        // let r = esprit::script(&copy);
-                        // match r {
-                        //     Ok(actual_ast) => {
-                        //         let stms = actual_ast.body;
-                                
-                        //     },
-                        //     Err(v) => print!("Error: {:#?}", v),
-                        // }
-                        // let _module = ratel::parser::parse(copy);//.expect("Must parse");
-                        // println!("{}", _module);
-                        
-                        // let mut lexer = Lexer::new(&line);
-                        // lexer.lex().expect("no lex");
-                        
-                        // let tokens = lexer.tokens;
+                    // let r = esprit::script(&copy);
+                    // match r {
+                    //     Ok(actual_ast) => {
+                    //         let stms = actual_ast.body;
 
-                        // let expr = Parser::new(tokens).parse_all().expect("no parse");
-                        // let mut engine: Interpreter = Executor::new();
-                        // let result = engine.run(&expr);
-                        // match result {
-                        //     Ok(v) => print!("{}", v),
-                        //     Err(v) => print!("Error: {}", v),
-                        // }
+                    //     },
+                    //     Err(v) => print!("Error: {:#?}", v),
+                    // }
+                    // let _module = ratel::parser::parse(copy);//.expect("Must parse");
+                    // println!("{}", _module);
+
+                    // let mut lexer = Lexer::new(&line);
+                    // lexer.lex().expect("no lex");
+
+                    // let tokens = lexer.tokens;
+
+                    // let expr = Parser::new(tokens).parse_all().expect("no parse");
+                    // let mut engine: Interpreter = Executor::new();
+                    // let result = engine.run(&expr);
+                    // match result {
+                    //     Ok(v) => print!("{}", v),
+                    //     Err(v) => print!("Error: {}", v),
+                    // }
                     // });
                     // if result.is_err() {
                     //     last_command.push_str(&line);
                     //     println!("{}", last_command);
                     // }
-                    
+
                     // match expr {
                     //     Ok(exp) => println!("ok"),
                     //     Err(error) => match error.kind() {
@@ -118,7 +203,7 @@ impl REPL {
                     //         other_error => panic!("There was a problem opening the file: {:?}", other_error),
                     //     },
                     // }
-                },
+                }
                 Err(_) => break,
             }
         }

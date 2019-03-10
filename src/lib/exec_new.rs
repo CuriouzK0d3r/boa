@@ -1,21 +1,16 @@
-use crate::js::function::{Function, RegularFunction};
-use crate::js::object::{INSTANCE_PROTOTYPE, PROTOTYPE};
-use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
+use ratel::ast::function::OptionalName;
+use crate::js::value::{to_value, Value, ValueData};
 use crate::js::{array, console, function, json, math, object, string};
-use crate::syntax::ast::constant::Const;
-use crate::syntax::ast::expr::{Expr, ExprDef};
-use crate::syntax::ast::op::{BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp};
-use gc::{Gc, GcCell};
+use gc::{Gc};
 use std::borrow::Borrow;
-use std::collections::HashMap;
 use ratel::ast::Pattern;
 use ratel::ast::operator::*;
+use ratel::ast::function::MandatoryName;
 
 extern crate ratel;
 use ratel::ast::expression::*;
 pub use ratel::ast::literal::Literal;
 use ratel::ast::Statement;
-use ratel::parse;
 
 /// A variable scope
 #[derive(Trace, Finalize, Clone, Debug)]
@@ -41,7 +36,7 @@ pub trait Executor {
     /// Run an expression
     fn run(&mut self, expr: &Statement) -> ();
 
-    fn runExpr(&mut self, expr: &Expression) -> Value;
+    fn run_expr(&mut self, expr: &Expression) -> Value;
 }
 
 /// A Javascript intepreter
@@ -100,33 +95,73 @@ impl Executor for Interpreter {
         self.scopes.pop().unwrap()
     }
 
-    fn runExpr(&mut self, expr: &Expression) -> Value {
+    fn run_expr(&mut self, expr: &Expression) -> Value {
         match expr {
             Expression::Literal(i) => match i {
                 Literal::Number(num) => to_value(num.parse::<f64>().ok()),
                 Literal::Binary(num) => to_value(num.parse::<f64>().ok()),
-                Literal::String(str_val) => to_value(str_val.to_owned()),
-                Literal::RegEx(regex) => to_value(None::<()>),
+                Literal::String(str_val) => to_value(format!("{}", (str_val.replace("\"", "")))),
+                Literal::RegEx(_regex) => to_value(None::<()>),
                 Literal::False => to_value(false),
                 Literal::True => to_value(true),
                 Literal::Null => to_value(None::<()>),
                 Literal::Undefined => Gc::new(ValueData::Undefined),
             },
             Expression::Identifier(id) => to_value(id.to_owned()),
+            Expression::Function(e) => {println!("f {:#?}", e); to_value(3)},
             Expression::Binary(e) => {
                 match e.operator {
                     OperatorKind::Addition => {
-                        let left  =  self.runExpr(&e.left.item);
-                        let right =  self.runExpr(&e.right.item);
-                        let mut val;
-                        if (left.is_double() && right.is_double()) {
-                            val = left.to_num() + right.to_num();
+                        let left  =  self.run_expr(&e.left.item);
+                        let right =  self.run_expr(&e.right.item);
+
+                        if left.is_double() && right.is_double() {
+                            to_value(left.to_num() + right.to_num())
+                        } 
+                        else if left.is_string() && right.is_double() {
+                            let owned_string = format!("{}{}", left, right.to_num());
+                            to_value(format!("{}", owned_string))
+                        }
+                        else {
+                            Gc::new(ValueData::Undefined)
+                        }
+                    },
+                    OperatorKind::Subtraction => {
+                        let left  =  self.run_expr(&e.left.item);
+                        let right =  self.run_expr(&e.right.item);
+
+                        if left.is_double() && right.is_double() {
+                            to_value(left.to_num() - right.to_num())
                         } 
                         else {
-                            val = -1.0;
+                            Gc::new(ValueData::Undefined)
                         }
-                        to_value(val)
                     },
+                    OperatorKind::Division => {
+                        let left  =  self.run_expr(&e.left.item);
+                        let right =  self.run_expr(&e.right.item);
+
+                        if left.is_double() && right.is_double() {
+                            if right.to_num() == 0.0 {
+                                panic!("Error! Division By Zero!");
+                            }
+                            to_value(left.to_num() / right.to_num())
+                        } 
+                        else {
+                            Gc::new(ValueData::Undefined)
+                        }
+                    },
+                    OperatorKind::Multiplication => {
+                        let left  =  self.run_expr(&e.left.item);
+                        let right =  self.run_expr(&e.right.item);
+
+                        if left.is_double() && right.is_double() {
+                            to_value(left.to_num() * right.to_num())
+                        } 
+                        else {
+                            Gc::new(ValueData::Undefined)
+                        }
+                    }
                     _ => panic!("unhandled case"),    
                 }
             },
@@ -136,27 +171,26 @@ impl Executor for Interpreter {
 
     fn run(&mut self, stmt: &Statement) -> () {
         match stmt {
-            Statement::Expression(e) => println!("{}", self.runExpr(&e.item)),
+            Statement::Expression(e) => println!("{}", self.run_expr(&e.item)),
             Statement::Declaration(v) => {
                 let decl = v.declarators;
-                let kind = v.kind;
-                 let scope_vars = self.scope().vars.clone();
+                let _kind = v.kind;
+                let scope_vars = self.scope().vars.clone();
                 let scope_vars_ptr = scope_vars.borrow();
                  for i in &decl {
-                    println!("trace3 : {:#?}", i);
                     let id = i.item.id.item;
                     let init = i.item.init;
                     let val = match init {
-                        Some(l) => self.runExpr(&l.item),
-                        _ => panic!("unhandled case"),
+                         Some(l) => self.run_expr(&l.item),
+                         _ => panic!("unhandled case"),
                     };
 
-                    let varname = match id {
+                    let varname = match id { 
                         Pattern::Identifier(name) => name,
-                        _ => panic!("wrong var name"),
-                    };
+                         _ => panic!("wrong var name"),
+                     };
  
-                    scope_vars_ptr.set_field(varname.to_owned(), val);
+                     scope_vars_ptr.set_field(varname.to_owned(), val);
                  }
             },
             Statement::Block(b) => {
@@ -166,7 +200,44 @@ impl Executor for Interpreter {
                  }
                 //  body.last().unwrap().clone();
             },
-            _ => println!("fd"),
+            Statement::If(exp) => {
+                let _cond = self.run_expr(&exp.test.item);
+                let _cons = exp.consequent;
+                let _alternate = exp.alternate;
+
+                if _cond.is_true() {
+                    self.run(&_cons.item);
+                }
+                else {
+                    match _alternate {
+                        Some(e) => self.run(&e.item),
+                        _ => (),
+                    }
+                }
+            },
+            Statement::While(exp) => {
+                let _cond = self.run_expr(&exp.test.item);
+                let _cons = exp.body;
+                while _cond.is_true() {
+                    self.run(&_cons.item);
+                }
+                println!("{:?}",exp);
+            },
+            Statement::Function(e) => {
+                let _params    = e.params;
+                let _body      = e.body.item.body;
+
+                let _func_name = match e.name {
+                    MandatoryName(name) => name.item,
+                };
+
+                // self.run(&_body.item.body);
+                for i in &_body {
+                    self.run(&i);
+                }
+            },
+            Statement::Empty => (),
+            _ => panic!("unhandled case"),
         };
         ()
     }

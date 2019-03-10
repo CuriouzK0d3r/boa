@@ -19,7 +19,6 @@ time = "0.1"
 rustyline = "3.0.0"
 toolshed = "0.8.0"
 ratel = { path = "ratel-core/ratel" }
-termion = "*"
 
 [lib]
 name = "boa"

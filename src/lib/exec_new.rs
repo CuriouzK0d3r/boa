@@ -1,11 +1,11 @@
-use ratel::ast::function::OptionalName;
 use crate::js::value::{to_value, Value, ValueData};
 use crate::js::{array, console, function, json, math, object, string};
-use gc::{Gc};
+use gc::{Gc, GcCell};
 use std::borrow::Borrow;
 use ratel::ast::Pattern;
 use ratel::ast::operator::*;
 use ratel::ast::function::MandatoryName;
+use crate::js::function::{Function, RegularFunction};
 
 extern crate ratel;
 use ratel::ast::expression::*;
@@ -106,6 +106,11 @@ impl Executor for Interpreter {
                 Literal::True => to_value(true),
                 Literal::Null => to_value(None::<()>),
                 Literal::Undefined => Gc::new(ValueData::Undefined),
+            },
+            Expression::Call(e) => {
+                let args = e.arguments;
+                let name = self.run_expr(&e.callee.item);
+                to_value(3)
             },
             Expression::Identifier(id) => to_value(id.to_owned()),
             Expression::Function(e) => {println!("f {:#?}", e); to_value(3)},
@@ -235,6 +240,13 @@ impl Executor for Interpreter {
                 for i in &_body {
                     self.run(&i);
                 }
+
+                // let function =
+                //     Function::RegularFunc(RegularFunction::new(_body .clone(), _params.clone()));
+                // let val = Gc::new(crate::js::function::NewRegularFunction::new(Statement::Function(e), new Vec<string)());
+                // self.global
+                //     .borrow()
+                //     .set_field(_func_name.to_owned().clone(), val.clone());
             },
             Statement::Empty => (),
             _ => panic!("unhandled case"),

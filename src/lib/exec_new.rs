@@ -5,7 +5,7 @@ use std::borrow::Borrow;
 use ratel::ast::Pattern;
 use ratel::ast::operator::*;
 use ratel::ast::function::MandatoryName;
-use crate::js::function::{Function, RegularFunction};
+use crate::js::function::{Function, RegularFunction,NewRegularFunction};
 
 extern crate ratel;
 use ratel::ast::expression::*;
@@ -237,13 +237,27 @@ impl Executor for Interpreter {
                 };
 
                 // self.run(&_body.item.body);
+                let mut v = Vec::new();
                 for i in &_body {
                     self.run(&i);
+                    v.push(i);
                 }
 
-                // let function =
-                //     Function::RegularFunc(RegularFunction::new(_body .clone(), _params.clone()));
-                // let val = Gc::new(crate::js::function::NewRegularFunction::new(Statement::Function(e), new Vec<string)());
+                // let x : () = _body;
+
+                let b = Box::new(v);
+
+                let mut memory = std::collections::HashMap::new();
+
+                memory.insert(
+                    _func_name.to_string(),
+                    _body,
+                );
+
+
+
+                
+                // let val = crate::js::function::NewRegularFunction::new(Statement::Function(e), new Vec<string)();
                 // self.global
                 //     .borrow()
                 //     .set_field(_func_name.to_owned().clone(), val.clone());

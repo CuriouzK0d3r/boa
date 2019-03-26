@@ -75,6 +75,7 @@ impl Parser {
                 let thrown = r#try!(self.parse());
                 Ok(mk!(self, ExprDef::ThrowExpr(Box::new(thrown))))
             }
+            Keyword::Let |
             Keyword::Var => {
                 let mut vars = Vec::new();
                 loop {

@@ -1,2 +1,7 @@
-var a = new String("test");
-a;
+function a() {
+    let v = 3;
+
+    return v + 2;
+}
+
+let a = (x) => x;

@@ -1,10 +1,10 @@
-use crate::exec_new::{Executor, Interpreter};
-extern crate ratel;
+use crate::exec::{Executor, Interpreter};
 extern crate rustyline;
+
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
-extern crate toolshed;
-use ratel::parse;
+use crate::syntax::lexer::Lexer;
+use crate::syntax::parser::Parser;
 
 /// Starting prompt
 const DEFAULT_PROMPT: &'static str = "js => ";
@@ -43,20 +43,26 @@ impl REPL {
                     last_command.push_str(&line);
 
                     let copy = last_command.clone();
-                    let r = parse(&copy);
+                    let mut lexer = Lexer::new(&copy);
+                    lexer.lex().unwrap();
+                    let tokens = lexer.tokens;
 
+                    // let r = parse(&copy);
+                    let expr = Parser::new(tokens).parse_all().unwrap();
+                    let mut engine: Interpreter = Executor::new();
+                    let r = engine.run(&expr);
                     match r {
                         Ok(module) => {
-                            let vec = module.body();
+                            // let vec = module.body();
 
-                            for i in &vec {
-                                let x = i.item;
-                                let mut engine: Interpreter = Executor::new();
-                                engine.run(&x);
-                            }
-                            rl.save_history("history.txt").unwrap();
-                            prompt = DEFAULT_PROMPT;
-                            last_command = "".to_string();
+                            // for i in &vec {
+                            //     let x = i.item;
+                            //     let mut engine: Interpreter = Executor::new();
+                            //     engine.run(&x);
+                            // }
+                            // rl.save_history("history.txt").unwrap();
+                            // prompt = DEFAULT_PROMPT;
+                            // last_command = "".to_string();
                         },
                         Err(_) => {
                             prompt = MORE_PROMPT;

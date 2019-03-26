@@ -3,7 +3,6 @@ use crate::js::object::{ObjectData, Property};
 use crate::js::value::{to_value, ResultValue, Value, ValueData};
 use std::collections::HashMap;
 use crate::syntax::ast::expr::Expr;
-use ratel::ast::Statement;
 
 /// fn(this, callee, arguments)
 pub type NativeFunctionData = fn(Value, Value, Vec<Value>) -> ResultValue;
@@ -12,31 +11,6 @@ pub type NativeFunctionData = fn(Value, Value, Vec<Value>) -> ResultValue;
 /// A member of the Object type that may be invoked as a subroutine
 /// https://tc39.github.io/ecma262/#sec-terms-and-definitions-function
 /// In our implementation, Function is extending Object by holding an object field which some extra data
-
-pub struct NewRegularFunction {
-    /// The fields associated with the function
-    pub object: ObjectData,
-    /// This function's expression
-    pub expr: Statement<'static>,
-    /// The argument names of the function
-    pub args: Vec<String>,
-}
-
-impl NewRegularFunction {
-    /// Make a new regular function
-    pub fn new(expr: Statement<'static>, args: Vec<String>) -> NewRegularFunction {
-        let mut obj = HashMap::new();
-        obj.insert(
-            "arguments".to_string(),
-            Property::new(Gc::new(ValueData::Integer(args.len() as i32))),
-        );
-        NewRegularFunction {
-            object: obj,
-            expr: expr,
-            args: args,
-        }
-    }
-}
 
 /// A Javascript function
 #[derive(Trace, Finalize, Debug, Clone)]

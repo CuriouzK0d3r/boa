@@ -1,8 +1,13 @@
-use gc::Gc;
 use crate::js::function::NativeFunctionData;
 use crate::js::value::{from_value, to_value, FromValue, ResultValue, ToValue, Value, ValueData};
+use gc::Gc;
 use std::collections::HashMap;
+
+/// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.  
+/// As this string will be used a lot throughout the program, its best being a static global string which will be referenced
 pub static PROTOTYPE: &'static str = "prototype";
+/// Static `__proto__`, usually set on Object instances as a key to point to their respective prototype object.  
+/// As this string will be used a lot throughout the program, its best being a static global string which will be referenced
 pub static INSTANCE_PROTOTYPE: &'static str = "__proto__";
 
 pub type ObjectData = HashMap<String, Property>;

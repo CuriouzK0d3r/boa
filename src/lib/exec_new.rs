@@ -45,6 +45,8 @@ pub struct Interpreter {
     global: Value,
     /// The scopes
     pub scopes: Vec<Scope>,
+    pub decls: std::collections::HashMap<String, Value> 
+
 }
 
 impl Interpreter {
@@ -67,9 +69,10 @@ impl Executor for Interpreter {
         string::init(global.clone());
         Interpreter {
             global: global.clone(),
+            decls: std::collections::HashMap::new().clone(),
             scopes: vec![Scope {
                 this: global.clone(),
-                vars: global.clone(),
+                vars: global.clone()
             }],
         }
     }
@@ -85,7 +88,7 @@ impl Executor for Interpreter {
     fn make_scope(&mut self, this: Value) -> Scope {
         let scope = Scope {
             this: this,
-            vars: ValueData::new_obj(None),
+            vars: ValueData::new_obj(None)
         };
         self.scopes.push(scope.clone());
         scope
@@ -112,8 +115,8 @@ impl Executor for Interpreter {
                 let name = self.run_expr(&e.callee.item);
                 to_value(3)
             },
-            Expression::Identifier(id) => to_value(id.to_owned()),
-            Expression::Function(e) => {println!("f {:#?}", e); to_value(3)},
+            Expression::Identifier(id) => {let scope_vars = self.scope().vars.borrow(); scope_vars.get_field(id.to_string())},
+            Expression::Function(e) => {to_value(3)},
             Expression::Binary(e) => {
                 match e.operator {
                     OperatorKind::Addition => {
@@ -194,8 +197,10 @@ impl Executor for Interpreter {
                         Pattern::Identifier(name) => name,
                          _ => panic!("wrong var name"),
                      };
- 
-                     scope_vars_ptr.set_field(varname.to_owned(), val);
+                     
+                     scope_vars_ptr.set_field(varname.to_string(), val.clone());
+                     self.set_global(varname.to_string(), val.clone());
+                     &self.decls.insert(varname.to_string(), val.clone());
                  }
             },
             Statement::Block(b) => {
@@ -248,6 +253,9 @@ impl Executor for Interpreter {
                 let b = Box::new(v);
 
                 let mut memory = std::collections::HashMap::new();
+
+                let scope_vars = self.scope().vars.borrow();
+                // scope_vars.set_field(_func_name.to_string(), v);
 
                 memory.insert(
                     _func_name.to_string(),

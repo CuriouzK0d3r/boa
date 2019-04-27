@@ -34,7 +34,7 @@ impl REPL {
 
         let mut prompt = DEFAULT_PROMPT;
         let mut last_command : String = "".to_string();
-
+        let mut engine: Interpreter = Executor::new();
         loop {
             match rl.readline(prompt) {
                 Ok(line) => {
@@ -51,7 +51,7 @@ impl REPL {
 
                             for i in &vec {
                                 let x = i.item;
-                                let mut engine: Interpreter = Executor::new();
+                                
                                 engine.run(&x);
                             }
                             rl.save_history("history.txt").unwrap();

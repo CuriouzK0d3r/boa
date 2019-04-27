@@ -1,0 +1,76 @@
+1 + 2
+2 + 3
+let a = 3;
+a
+let a = 3;
+a
+let a = 3;
+let a = 4;
+a
+let a = 4;
+a
+let a = 3;
+let v = 3;
+let f = 3;
+f
+let f = 3;
+a
+f
+function f() {}
+f
+let a = 5;
+let f = 4;
+let a = 5;
+a
+{
+sfs
+{ 
+let a = 4;
+{
+let f = 4;
+let a = 4;
+a
+let a = 5;
+a
+let a = 3;
+a
+let ass = 3;
+ass
+let a = 3;
+a
+let l = 4;
+l
+let a =3 ;
+let a =3;
+a
+let a = 3;
+a
+let a = 3;
+a
+let a = 3;
+a
+let a = 3;
+a
+let f =3;
+f
+let a = 3;
+a
+let a = 3;
+a
+let a = 3;
+a
+let a = 3;
+a
+let a = 3;
+a
+let b = 3;
+b
+let c = 7;
+b
+c
+c + 3
+b + c
+a + b
+b/2
+b/4
+b/5

@@ -1,11 +1,10 @@
 use crate::js::value::{to_value, Value, ValueData};
 use crate::js::{array, console, function, json, math, object, string};
-use gc::{Gc, GcCell};
+use gc::Gc;
 use std::borrow::Borrow;
 use ratel::ast::Pattern;
 use ratel::ast::operator::*;
 use ratel::ast::function::MandatoryName;
-use crate::js::function::{Function, RegularFunction,NewRegularFunction};
 
 extern crate ratel;
 use ratel::ast::expression::*;
@@ -110,13 +109,13 @@ impl Executor for Interpreter {
                 Literal::Null => to_value(None::<()>),
                 Literal::Undefined => Gc::new(ValueData::Undefined),
             },
-            Expression::Call(e) => {
-                let args = e.arguments;
-                let name = self.run_expr(&e.callee.item);
+            Expression::Call(_e) => {
+                // let args = e.arguments;
+                // let name = self.run_expr(&e.callee.item);
                 to_value(3)
             },
             Expression::Identifier(id) => {let scope_vars = self.scope().vars.borrow(); scope_vars.get_field(id.to_string())},
-            Expression::Function(e) => {to_value(3)},
+            Expression::Function(_e) => {to_value(3)},
             Expression::Binary(e) => {
                 match e.operator {
                     OperatorKind::Addition => {
@@ -248,13 +247,7 @@ impl Executor for Interpreter {
                     v.push(i);
                 }
 
-                // let x : () = _body;
-
-                let b = Box::new(v);
-
                 let mut memory = std::collections::HashMap::new();
-
-                let scope_vars = self.scope().vars.borrow();
                 // scope_vars.set_field(_func_name.to_string(), v);
 
                 memory.insert(
